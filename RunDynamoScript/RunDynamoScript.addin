@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+	<AddIn Type="Application">
+		<Name>Run Dynamo Script</Name>
+		<FullClassName>RunDynamoScript.Application</FullClassName>
+		<Text>Generate Metal Structure</Text>
+		<Description>Generate metal structure from a lsit of lines</Description>
+		<VisibilityMode>AlwaysVisible</VisibilityMode>
+		<Assembly>RunDyno\RunDynamoScript.dll</Assembly>
+		<AddInId>9C839127-7A9E-40F7-86D2-410B276F4C1C</AddInId>
+		<VendorId>Ukraine+Japan</VendorId>
+		<VendorDescription>Kyiv, Ukraine</VendorDescription>
+	</AddIn>
+</RevitAddIns>

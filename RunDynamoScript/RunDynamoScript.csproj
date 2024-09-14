@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BB6265BD-EBCF-4140-9064-061C4F194EC6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>RunDynamoScript</RootNamespace>
+    <AssemblyName>RunDynamoScript</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DesignScriptBuiltin">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DesignScriptBuiltin.dll</HintPath>
+    </Reference>
+    <Reference Include="DSIronPython">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DSIronPython.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamoApplications">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DynamoApplications.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamoCore">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DynamoCore.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamoCoreWpf">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DynamoCoreWpf.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamoInstallDetective">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DynamoInstallDetective.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamoManipulation">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DynamoManipulation.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamoPython">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DynamoPython.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamoRevitDS">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\Revit\DynamoRevitDS.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamoShapeManager">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DynamoShapeManager.dll</HintPath>
+    </Reference>
+    <Reference Include="DynamoUtilities">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\DynamoUtilities.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="ProtoCore">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\ProtoCore.dll</HintPath>
+    </Reference>
+    <Reference Include="ProtoGeometry">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\ProtoGeometry.dll</HintPath>
+    </Reference>
+    <Reference Include="RevitAPI">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitServices">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\Revit\RevitServices.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="VMDataBridge">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AddIns\DynamoForRevit\VMDataBridge.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Application.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RunDynamo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\apply.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\dropdown.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\reapply.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\select.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\script.dyn">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="RunDynamoScript.addin" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if not exist "$(AppData)\Autodesk\Revit\Addins\2021\RunDyno" mkdir "$(AppData)\Autodesk\Revit\Addins\2021\RunDyno"
+
+Copy "$(TargetDir)RunDynamoScript.dll" "$(AppData)\Autodesk\Revit\Addins\2021\RunDyno"
+
+if exist "$(AppData)\Autodesk\REVIT\Addins\2021" copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2021"
+
+if exist "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno" copy "$(ProjectDir)\Resources\script.dyn" "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno"
+
+if exist "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno" copy "$(ProjectDir)\Resources\apply.png" "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno"
+
+if exist "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno" copy "$(ProjectDir)\Resources\dropdown.png" "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno"
+
+if exist "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno" copy "$(ProjectDir)\Resources\reapply.png" "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno"
+
+if exist "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno" copy "$(ProjectDir)\Resources\select.png" "$(AppData)\Autodesk\REVIT\Addins\2021\RunDyno"</PostBuildEvent>
+  </PropertyGroup>
+</Project>

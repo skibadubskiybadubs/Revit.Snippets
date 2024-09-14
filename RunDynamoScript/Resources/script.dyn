@@ -1,0 +1,992 @@
+{
+  "Uuid": "b9cc3067-e84a-4cf2-bace-9ee0f373dc25",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "2",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "92ff55de366c4273a2eee81fd8ae1204",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "75669b0ac52b4b6fa383ee9f10337ad4",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\r\nclr.AddReference('RevitAPI')\r\nclr.AddReference('RevitAPIUI')\r\nclr.AddReference('RevitNodes')\r\nclr.AddReference('RevitServices')\r\nfrom Autodesk.Revit.DB import *\r\nfrom Autodesk.Revit.UI import *\r\nimport Revit\r\nimport RevitServices\r\nfrom RevitServices.Persistence import DocumentManager\r\nfrom RevitServices.Transactions import TransactionManager\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\nuidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\r\n\r\n# Check if the input is True\r\nif IN[0] == True:\r\n    # Prompt the user to select objects\r\n    selected_ids = uidoc.Selection.PickObjects(Selection.ObjectType.Element)\r\n    # Convert the selected ids to elements\r\n    selected_elements = [doc.GetElement(id) for id in selected_ids]\r\n    OUT = selected_elements\r\nelse:\r\n    OUT = []\r\n",
+      "VariableInputPorts": true,
+      "Id": "d84deb0e969c4bb8a17d95972e00b979",
+      "Inputs": [
+        {
+          "Id": "6c66fdbe549f4e0fa8f94721df93dc12",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5cacd64d25f14954a450bf808451b770",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\r\n\r\nclr.AddReference('System.Windows.Forms')\r\nfrom System.Windows.Forms import MessageBox, MessageBoxButtons, MessageBoxIcon\r\n\r\nclass ValidationError(Exception):\r\n\tdef __init__(self, typeError = \"Error\", messageError = \"An error occurred\"):\r\n\t\tself._typeError = typeError\r\n\t\tself._messageError = messageError\r\n\t\tException.__init__(self, self._typeError)\r\n\t\tself.CMessageBox()\r\n\t\t\r\n\tdef __str__(self):\r\n\t\treturn \"{} : {}\".format(self._typeError , self._messageError)\r\n\t\t\r\n\tdef CMessageBox(self):\r\n\t\tMessageBox.Show(self._messageError, self._typeError, MessageBoxButtons.OK, MessageBoxIcon.Error)\r\n\t\t\r\n\r\n\r\n\r\n#______________________FIND EXCEL FILE______________________\r\n\r\nimport os\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import*\r\nclr.AddReference('RevitServices')\r\nfrom RevitServices.Persistence import DocumentManager\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\npath = doc.PathName\r\n\r\n# Check if the path is empty\r\nif not path:\r\n    raise ValidationError(\"Revit document is not saved\", \"First save the Revit document, and make sure db.xlsx is located at the same folder\")\r\n\r\ndir_name = os.path.dirname(path)\r\n\r\ndb = \"db.csv\"\r\n\r\nnew_path = os.path.join(dir_name, db)\r\n\r\n# Check if the file exists at the new path\r\nif not os.path.isfile(new_path):\r\n    raise ValidationError(\"db.xlsx file is not found\", \"Please save the db.xlsx file in the same folder with the current Revit document\")\r\n\r\n#______________________LOAD EXCEL FILE______________________\r\n\r\nclr.AddReference('System')\r\nclr.AddReference('System.Data')\r\nfrom System.IO import FileInfo, StreamReader\r\nfrom System.Data import DataTable\r\nfrom System.Text import UTF8Encoding\r\n\r\nreader = StreamReader(new_path, UTF8Encoding(True))\r\ncolumn1_data = []\r\ncolumn2_data = []\r\nsearch_block = IN[0]\r\nin_search_block = False\r\nline = reader.ReadLine()\r\nwhile line != None:\r\n    fields = line.Split('\\t')\r\n    if fields[0] == search_block:\r\n        in_search_block = True\r\n    elif in_search_block and fields[0] != \"\":\r\n        column1_data.append(fields[0])\r\n        column2_data.append(fields[1])\r\n    elif in_search_block and fields[0] == \"\":\r\n        break\r\n    line = reader.ReadLine()\r\nreader.Close()\r\n\r\n# check if the block exists\r\nif not column1_data and not column2_data:\r\n\traise ValidationError(\"Could not find\", \"The specified parameter is not found in the db.csv file\")\r\n\r\nOUT = (column1_data, column2_data)",
+      "VariableInputPorts": true,
+      "Id": "9d550d69323a485985d78aeb8466a92a",
+      "Inputs": [
+        {
+          "Id": "c8e46cacf27d45b5b934a9745715223e",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "7241f7a092a644c3aea07c55a6d74242",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "4b35bb6330184a2ba5606e0e94735732",
+      "Inputs": [
+        {
+          "Id": "b5bd1d8487bc4c0fa26df5a0641cd65e",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "978a860236dc4a5685e890e95a7d2e19",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"667-04\";",
+      "Id": "3e265b9aa9ef4947bf287a11a10b228f",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "97429d2e0dd64b0ca45c401f9ef0756b",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "OUT = IN[0][0]",
+      "VariableInputPorts": true,
+      "Id": "3740a66316d9409fae475e5213bfe2ca",
+      "Inputs": [
+        {
+          "Id": "14671dd9610b4314aa657b8f72f8e78b",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "9cf23c04d4d74488b501ba023a739605",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "OUT = IN[0][1]",
+      "VariableInputPorts": true,
+      "Id": "1f82012b919840538c35851f25179ab4",
+      "Inputs": [
+        {
+          "Id": "6547a1d4eea04ae4a0a325a39f091343",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "db412e5ece74432b933dfa6a41be5a44",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "de249f5a1bcc41e8934f914fd623ff68",
+      "Inputs": [
+        {
+          "Id": "6674444eadf74665a5f3f8c4ecaa314f",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "7559760b51294a5d8948b6e06b09c072",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "4eddb53f8e414f0ba20384ddbc9e0917",
+      "Inputs": [
+        {
+          "Id": "1997fde7d31d4da3a03945bb4d11f81a",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "f5fba0d1c81a49ebb253c3e49a82c12f",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import os\r\nimport System\r\nimport clr\r\nclr.AddReference('RevitAPI')\r\nclr.AddReference('RevitAPIUI')\r\nclr.AddReference('RevitNodes')\r\nclr.AddReference('RevitServices')\r\nclr.AddReference('PresentationCore')\r\nclr.AddReference('AdWindows')\r\nimport Autodesk.Windows as adWin\r\nfrom Autodesk.Revit.DB import *\r\nfrom Autodesk.Revit.UI import *\r\nimport Revit\r\nimport RevitServices\r\nfrom RevitServices.Persistence import DocumentManager\r\nfrom RevitServices.Transactions import TransactionManager\r\n\r\n# Get the current Revit application UI\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\nuiapp = DocumentManager.Instance.CurrentUIApplication\r\nuidoc = uiapp.ActiveUIDocument\r\napp = uiapp.Application\r\n\r\n\r\n\r\n\r\n#________________________________CREATE RIBBON TAB\r\ntabName = 'MishaTab'\r\n# Check if the tab already exists\r\ntabs = adWin.ComponentManager.Ribbon\r\ntab = None\r\nfor t in tabs.Tabs:\r\n    name = t.AutomationName\r\n    if name == tabName:\r\n        tab = t\r\n        break\r\n# If the tab doesn't exist, create a new one\r\nif tab is None:\r\n    tab = uiapp.CreateRibbonTab(tabName)\r\n\r\n#________________________________CREATE PANEL\r\npanelName = 'MishaPanel'\r\n# Check if the panel already exists\r\npanel = None\r\nfor p in uiapp.GetRibbonPanels(tab.Id):\r\n\tname = p.Name\r\n\tif name == panelName:\r\n\t\tpanel = p\r\n\t\tbreak\r\n# If the panel doesn't exist, create a new one\r\nif panel is None:\r\n\tpanel = uiapp.CreateRibbonPanel(tabName, panelName)\r\n\t\r\n#________________________________CREATE DROPDOWN MENU\r\n# Create a ComboBoxData object\r\ndropdownName = 'MishaDrop'\r\ncbData = ComboBoxData(dropdownName) \r\n\r\n# Check if the ComboBox already exists\r\ncomboBox = None\r\nfor item in panel.GetItems():\r\n\tif item.Name == dropdownName:\r\n\t\tcomboBox = item\r\n\t\tbreak\r\n# If the ComboBox doesn't exist, create a new one\r\nvalues = IN[0]\r\nif comboBox is None:\r\n\tcomboBox = panel.AddItem(cbData)\r\n\tfor value in values:\r\n\t    comboBox.AddItem(ComboBoxMemberData(value, value))\r\n\r\nOUT = comboBox.Current.Name\r\n\r\n\r\n\r\n\r\n#________________________________OUTPUT SELECTED VALUE\r\n# Create a new Shared Parameter\r\nparamName = 'ComboBoxSelection'\r\nparamGroup = 'ComboBox Parameters'\r\n\r\n# Check if Shared Parameters file exists\r\ndefinitionFile = app.OpenSharedParameterFile()\r\nif not definitionFile:\r\n\tpath = doc.PathName\r\n\tdir_name = os.path.dirname(path)\r\n\tdb = \"sp.txt\"\r\n\tnew_path = os.path.join(dir_name, db)\r\n\tparams = app.SharedParametersFilename = new_path # set shared parameters file path\r\n\tdefinitionFile = app.OpenSharedParameterFile()\r\n\r\n# Create a Shared Parameter in Shared Parameters file\r\ndefinitionGroup = definitionFile.Groups.get_Item(paramGroup)\r\nif definitionGroup is None:\r\n    definitionGroup = definitionFile.Groups.Create(paramGroup)\r\ndefinition = definitionGroup.Definitions.get_Item(paramName)\r\nif definition is None:\r\n    options = ExternalDefinitionCreationOptions(paramName, ParameterType.Text)\r\n    definition = definitionGroup.Definitions.Create(options)\r\n# Create new Category in the Shared Parameter \r\nsharedParam = doc.ParameterBindings.get_Item(definition)\r\ncategorySet = app.Create.NewCategorySet() \r\nif sharedParam is None:  \r\n\tTransactionManager.Instance.EnsureInTransaction(doc)\r\n\tcategorySet.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_ProjectInformation))\r\n\tbinding = app.Create.NewInstanceBinding(categorySet)\r\n\tdoc.ParameterBindings.Insert(definition, binding, BuiltInParameterGroup.PG_TEXT)\r\n\tTransactionManager.Instance.TransactionTaskDone()\r\n\r\n    \r\n# Track changes in parameter\r\ndef on_combobox_changed(sender, args):\r\n    selectedValue = sender.Current\r\n    TransactionManager.Instance.EnsureInTransaction(doc)\r\n    doc.ProjectInformation.get_Parameter(definition.GUID).Set(selectedValue.Name)\r\n    TransactionManager.Instance.TransactionTaskDone()\r\n\r\n# Add the event handler to the ComboBox\r\ncomboBox.CurrentChanged += on_combobox_changed\r\n\r\n# Get the value of the shared parameter\r\nTransactionManager.Instance.EnsureInTransaction(doc)\r\nselectedValue = doc.ProjectInformation.get_Parameter(definition.GUID).AsString()\r\nTransactionManager.Instance.TransactionTaskDone()\r\n\r\n# Output the selected value\r\n#OUT = selectedValue\r\n",
+      "VariableInputPorts": true,
+      "Id": "846fcc6c9bda4130a190f8e78e5f50e6",
+      "Inputs": [
+        {
+          "Id": "9405a4ae7691443ba05a735966f694fa",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "bba49f48161e4db69db03ebbadb1ef2f",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "eaf96cf510c24592938ae90cd64a89c0",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "4aa1778946974e8585a7fc1283f1af63",
+      "Inputs": [
+        {
+          "Id": "6a41392678cb40e9999b976dbfb0aa54",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "d6780427d7474bf4a880c049f4cf2cdf",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "#Copyright(c) 2016, Dimitar Venkov\r\n# @5devene, dimitar.ven@gmail.com\r\n\r\nimport clr\r\nclr.AddReference('System.Windows.Forms')\r\nclr.AddReference('System.Drawing')\r\n\r\nfrom System.Drawing import Point, Color, Font\r\nfrom System.Windows.Forms import *\r\nfrom System import Array, Object\r\n\r\ndef tolist(obj1):\r\n\tif hasattr(obj1,\"__iter__\"): return obj1\r\n\telse: return [obj1]\r\n\r\ndef hasInd(l1, i):\r\n\ttry: l1[i] ; return True\r\n\texcept: return False\r\n\r\nclass NameWrap(Object):\r\n\tdef __init__(self, obj1, name1 = None):\r\n\t\tself.obj = obj1\r\n\t\tif obj1 == None: name1 = \"null\"\r\n\t\tif name1 == None and obj1 != None: self.name = obj1.ToString()\r\n\t\telse: self.name = name1\r\n\tdef ToString(self):\r\n\t\treturn self.name\r\n\r\nclass DropDownForm(Form):\r\n\tdef __init__(self, cm1):\r\n\t\tself.Text = \"Select type\"\r\n\t\tself.Width = 368\r\n\t\tself.Height = 336\r\n\t\tself.BackColor = Color.FromArgb(40,40,40)\r\n\t\tself.ControlBox = False\r\n\t\tself.TopMost = True\r\n\t\tself.FormBorderStyle = FormBorderStyle.FixedDialog\r\n\t\tself.StartPosition = FormStartPosition.CenterScreen\r\n\t\t\r\n\t\tself.label = Label()\r\n\t\tself.label.Text = cm1\r\n\t\tself.label.Location = Point(5, 5)\r\n\t\tself.label.ForeColor = Color.FromArgb(234,234,234)\r\n\t\tself.label.Font = Font(\"Calibri\", 10)\r\n\t\tself.label.AutoSize = True\r\n\t\tself.Controls.Add(self.label)\r\n\t\t\r\n\t\tself.combo1 = ComboBox()\r\n\t\tself.combo1.Location = Point(5, 31)\r\n\t\tself.combo1.Width = 350\r\n\t\tself.combo1.BackColor = Color.FromArgb(53,53,53)\r\n\t\tself.combo1.ForeColor = Color.FromArgb(234,234,234)\r\n\t\tself.combo1.Font = Font(\"Calibri\", 11)\r\n\t\tself.combo1.MouseClick += self.expand\r\n\t\tself.Controls.Add(self.combo1)\r\n\t\t\r\n\t\tself.button1 = Button()\r\n\t\tself.button1.Text = 'Select'\r\n\t\tself.button1.AutoSize = True\r\n\t\tself.button1.Width = 350\r\n\t\tself.button1.Location = Point(6, 72)\r\n\t\tself.button1.ForeColor = Color.FromArgb(234,234,234)\r\n\t\tself.button1.Font = Font(\"Calibri\", 10)\r\n\t\tself.button1.Click += self.save\r\n\t\tself.Controls.Add(self.button1)\r\n\t\r\n\tdef expand(self, sender, event):\r\n\t\tself.combo1.DroppedDown = True\r\n\tdef add_range(self,l1):\r\n\t\tself.combo1.Items.AddRange(l1)\t\r\n\t\tif l1.Length >= 1:\r\n\t\t\tself.combo1.SelectedIndex = 0\r\n\tdef save(self, sender, event):\r\n\t\tself.output1 = self.combo1.SelectedItem\r\n\t\tself.Close()\r\n#safety measure due to automatic mode\r\nif IN[0] == None: l1 = []\r\nelse: l1 = tolist(IN[0])\r\nif IN[1] == None: names = None\r\nelse: names = tolist(IN[1])\r\n\r\nfor i in xrange(len(l1)):\r\n\tname1 = None\r\n\tif hasInd(names, i): name1 = names[i]\r\n\tl1[i] = NameWrap(l1[i], name1)\r\nl1_arr = Array[Object](l1)\r\nform = DropDownForm('Choosse and press Select')\r\nform.add_range(l1_arr)\r\nApplication.Run(form)\r\nif l1: OUT = form.output1.obj\r\nelse: OUT = []\r\nApplication.Exit()",
+      "VariableInputPorts": true,
+      "Id": "a301ee64291f4709993c700dd31722c0",
+      "Inputs": [
+        {
+          "Id": "0bbba033b2da4dd58ecad0546378f3bc",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "313a82ef6c514cc5b4535ccaeb2e02e2",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b0ce92afb45846ec8d4f2f760d0c93b1",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "05b9e494fceb4abd9357a56b6a63c881",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "selection;",
+      "Id": "b6e9f27318544b1ba5a1c50c5e034a4b",
+      "Inputs": [
+        {
+          "Id": "8c453a9dfd014ac9891b6f9b6ff7e004",
+          "Name": "selection",
+          "Description": "selection",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "4559ec7e24da4eeaa65d980cb1860f66",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "list: var[]..[];",
+      "Id": "3f0f825a0b5b4795b20b7d9d3e1fb624",
+      "Inputs": [
+        {
+          "Id": "998609ec66834607a80550b8563058b2",
+          "Name": "list",
+          "Description": "list",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "a00b3840c03343af80a4d138c5c0d7bd",
+          "Name": "",
+          "Description": "list",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "3aa1f5b909974ba89da37b0fcc623186",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "8ace5ed0c8e041f0b23cb4c988969410",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "737cdfb0883e45a7800a85830f6f7bb0",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "464143ddb5fe4f88bf1902327400e9ca",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "3485dd8019174b938330761249e070f5",
+      "Inputs": [
+        {
+          "Id": "df54d0ad979c49ffacc5975f70be8f40",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "9256fd4e515a47389d66966d46f1491d",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import os\r\nimport System\r\nimport clr\r\nclr.AddReference('RevitAPI')\r\nclr.AddReference('RevitAPIUI')\r\nclr.AddReference('RevitNodes')\r\nclr.AddReference('RevitServices')\r\nclr.AddReference('PresentationCore')\r\nclr.AddReference('AdWindows')\r\nimport Autodesk.Windows as adWin\r\nfrom Autodesk.Revit.DB import *\r\nfrom Autodesk.Revit.UI import *\r\nimport Revit\r\nimport RevitServices\r\nfrom RevitServices.Persistence import DocumentManager\r\nfrom RevitServices.Transactions import TransactionManager\r\n\r\n# Get the current Revit application UI\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\nuiapp = DocumentManager.Instance.CurrentUIApplication\r\nuidoc = uiapp.ActiveUIDocument\r\napp = uiapp.Application\r\n\r\n\r\n#________________________________CREATE RIBBON TAB\r\ntabName = 'MishaTab'\r\n# Check if the tab already exists\r\ntabs = adWin.ComponentManager.Ribbon\r\ntab = None\r\nfor t in tabs.Tabs:\r\n    name = t.AutomationName\r\n    if name == tabName:\r\n        tab = t\r\n        break\r\n# If the tab doesn't exist, create a new one\r\nif tab is None:\r\n    tab = uiapp.CreateRibbonTab(tabName)\r\n\r\n#________________________________CREATE PANEL\r\npanelName = 'MishaPanel'\r\n# Check if the panel already exists\r\npanel = None\r\nfor p in uiapp.GetRibbonPanels(tab.Id):\r\n\tname = p.Name\r\n\tif name == panelName:\r\n\t\tpanel = p\r\n\t\tbreak\r\n# If the panel doesn't exist, create a new one\r\nif panel is None:\r\n\tpanel = uiapp.CreateRibbonPanel(tabName, panelName)\r\n\t\r\n#________________________________CREATE DROPDOWN MENU\r\n# Create a ComboBoxData object\r\ndropdownName = 'MishaDrop'\r\ncbData = ComboBoxData(dropdownName) \r\n\r\n# Check if the ComboBox already exists\r\ncomboBox = None\r\nfor item in panel.GetItems():\r\n\tif item.Name == dropdownName:\r\n\t\tcomboBox = item\r\n\t\tbreak\r\n# If the ComboBox doesn't exist, create a new one\r\nvalues = IN[0]\r\nif comboBox is None:\r\n\tcomboBox = panel.AddItem(cbData)\r\n\tfor value in values:\r\n\t    comboBox.AddItem(ComboBoxMemberData(value, value))\r\n\r\nOUT = comboBox.Current.Name\r\n\r\n\r\n\r\n\r\n#________________________________OUTPUT SELECTED VALUE\r\n# Create a new Shared Parameter\r\nparamName = 'ComboBoxSelection'\r\nparamGroup = 'ComboBox Parameters'\r\n\r\n# Check if Shared Parameters file exists\r\ndefinitionFile = app.OpenSharedParameterFile()\r\nif not definitionFile:\r\n\tpath = doc.PathName\r\n\tdir_name = os.path.dirname(path)\r\n\tdb = \"sp.txt\"\r\n\tnew_path = os.path.join(dir_name, db)\r\n\tparams = app.SharedParametersFilename = new_path # set shared parameters file path\r\n\tdefinitionFile = app.OpenSharedParameterFile()\r\n\r\n# Create a Shared Parameter in Shared Parameters file\r\ndefinitionGroup = definitionFile.Groups.get_Item(paramGroup)\r\nif definitionGroup is None:\r\n    definitionGroup = definitionFile.Groups.Create(paramGroup)\r\ndefinition = definitionGroup.Definitions.get_Item(paramName)\r\nif definition is None:\r\n    options = ExternalDefinitionCreationOptions(paramName, ParameterType.Text)\r\n    definition = definitionGroup.Definitions.Create(options)\r\n# Create new Category in the Shared Parameter \r\nsharedParam = doc.ParameterBindings.get_Item(definition)\r\ncategorySet = app.Create.NewCategorySet() \r\nif sharedParam is None:  \r\n\tTransactionManager.Instance.EnsureInTransaction(doc)\r\n\tcategorySet.Insert(doc.Settings.Categories.get_Item(BuiltInCategory.OST_ProjectInformation))\r\n\tbinding = app.Create.NewInstanceBinding(categorySet)\r\n\tdoc.ParameterBindings.Insert(definition, binding, BuiltInParameterGroup.PG_TEXT)\r\n\tTransactionManager.Instance.TransactionTaskDone()\r\n\r\n    \r\n# Track changes in parameter\r\ndef on_combobox_changed(sender, args):\r\n\tTransactionManager.Instance.EnsureInTransaction(doc)\r\n\tselectedValue = sender.Current\r\n\tTransactionManager.Instance.TransactionTaskDone()\r\n\r\n# Add the event handler to the ComboBox\r\ncomboBox.CurrentChanged += on_combobox_changed\r\n\r\nOUT = comboBox.Current.Name ",
+      "VariableInputPorts": true,
+      "Id": "e6a266a1bac440d99736eae219265831",
+      "Inputs": [
+        {
+          "Id": "866060f8c58b46b3bceaa7ee31996720",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "2a4dd1ef3b66428d819749fbf2d81b75",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import os\r\nimport System\r\nimport clr\r\nclr.AddReference('RevitAPI')\r\nclr.AddReference('RevitAPIUI')\r\nclr.AddReference('RevitNodes')\r\nclr.AddReference('RevitServices')\r\nclr.AddReference('PresentationCore')\r\nclr.AddReference('AdWindows')\r\nimport Autodesk\r\nimport Autodesk.Windows as adWin\r\nfrom Autodesk.Revit.DB import *\r\nfrom Autodesk.Revit.UI import *\r\nimport Revit\r\nimport RevitServices\r\nfrom RevitServices.Persistence import DocumentManager\r\nfrom RevitServices.Transactions import TransactionManager\r\nclr.AddReference('DynamoCore')\r\nclr.AddReference('DynamoRevitDS')\r\nfrom Dynamo.Applications import *\r\nfrom Dynamo.Graph.Nodes import *\r\n\r\n# Get the current Revit application UI\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\nuiapp = DocumentManager.Instance.CurrentUIApplication\r\nuidoc = uiapp.ActiveUIDocument\r\napp = uiapp.Application\r\n\r\npath = doc.PathName\r\ndir_name = os.path.dirname(path)\r\nscript_name = '2.rvt'\r\nnew_path = os.path.join(dir_name, script_name)\r\n\r\n\r\n#________________________________CREATE RIBBON TAB\r\ntabName = 'MishaTab'\r\n# Check if the tab already exists\r\ntabs = adWin.ComponentManager.Ribbon\r\ntab = None\r\nfor t in tabs.Tabs:\r\n    name = t.AutomationName\r\n    if name == tabName:\r\n        tab = t\r\n        break\r\n# If the tab doesn't exist, create a new one\r\nif tab is None:\r\n    tab = uiapp.CreateRibbonTab(tabName)\r\n\r\n#________________________________CREATE PANEL\r\npanelName = 'MishaPanel'\r\n# Check if the panel already exists\r\npanel = None\r\nfor p in uiapp.GetRibbonPanels(tab.Id):\r\n\tname = p.Name\r\n\tif name == panelName:\r\n\t\tpanel = p\r\n\t\tbreak\r\n# If the panel doesn't exist, create a new one\r\nif panel is None:\r\n\tpanel = uiapp.CreateRibbonPanel(tabName, panelName)\r\n\r\n#________________________________CREATE BUTTON\r\n\r\ndllPath = r'C:\\_Misha\\temporal\\jap\\DynamoScript\\Test\\test\\bin\\Debug\\net8.0\\test.dll'\r\nclr.AddReferenceToFileAndPath(dllPath)\r\nfrom test import Testing\r\n\r\nbuttonName = 'MishaButton'\r\nbuttonData = PushButtonData(buttonName, 'Apply', dllPath, 'test.Testing')\r\n\r\n# Check if the PushButton already exists\r\nbutton = None\r\nfor item in panel.GetItems():\r\n\tif item.Name == buttonName:\r\n\t\tbutton = item\r\n\t\tbreak\r\n# If the PushButton doesn't exist, create a new one\r\nif button is None:\r\n\tbutton = panel.AddItem(buttonData)\r\n\r\nOUT = button.Name",
+      "VariableInputPorts": true,
+      "Id": "b7a32d5e3c8e4c518618316c76cf93ef",
+      "Inputs": [
+        {
+          "Id": "79ba07d152ce4074b733251f41e81b7c",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "8691d159a52f4527a2f84e7e20d3c159",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\r\nclr.AddReference('System.Windows.Forms')\r\nclr.AddReference('System.Drawing')\r\n\r\nfrom System.Drawing import Point, Color, Font\r\nfrom System.Windows.Forms import *\r\nfrom System import Array, Object\r\n\r\nclass Test(Form):\r\n\tdef __init__(self):\r\n\t\tself.Text = 'HIIII'\r\n\r\nt = Test()\r\n\r\nApplication.Run(t)\r\nApplication.Exit()",
+      "VariableInputPorts": true,
+      "Id": "a8544498f4d842ff8771aaa8230efbd8",
+      "Inputs": [
+        {
+          "Id": "7567311de2a541678f3f99bdfc605c14",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "7f98bdffedf9438284abcd9d051b396b",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "75669b0ac52b4b6fa383ee9f10337ad4",
+      "End": "6c66fdbe549f4e0fa8f94721df93dc12",
+      "Id": "03a7468cc8684ebbb94bd9140d31c665"
+    },
+    {
+      "Start": "5cacd64d25f14954a450bf808451b770",
+      "End": "1997fde7d31d4da3a03945bb4d11f81a",
+      "Id": "e03cc3c4c3334939bf47532e4eac659f"
+    },
+    {
+      "Start": "7241f7a092a644c3aea07c55a6d74242",
+      "End": "14671dd9610b4314aa657b8f72f8e78b",
+      "Id": "a158be3de1324d4e8dc63541179fb365"
+    },
+    {
+      "Start": "7241f7a092a644c3aea07c55a6d74242",
+      "End": "6547a1d4eea04ae4a0a325a39f091343",
+      "Id": "79df1044e5f849618fed5555c0317278"
+    },
+    {
+      "Start": "97429d2e0dd64b0ca45c401f9ef0756b",
+      "End": "c8e46cacf27d45b5b934a9745715223e",
+      "Id": "ac11b3f6c574440692921d12d12f6783"
+    },
+    {
+      "Start": "9cf23c04d4d74488b501ba023a739605",
+      "End": "b5bd1d8487bc4c0fa26df5a0641cd65e",
+      "Id": "0784e1f424cb4ac48e526189a5b22bb6"
+    },
+    {
+      "Start": "9cf23c04d4d74488b501ba023a739605",
+      "End": "9405a4ae7691443ba05a735966f694fa",
+      "Id": "b1cae4e8e2a54d8f95cb389504b23ed2"
+    },
+    {
+      "Start": "9cf23c04d4d74488b501ba023a739605",
+      "End": "998609ec66834607a80550b8563058b2",
+      "Id": "234b045c643c48a7aa0dc1ca18c92e9a"
+    },
+    {
+      "Start": "9cf23c04d4d74488b501ba023a739605",
+      "End": "866060f8c58b46b3bceaa7ee31996720",
+      "Id": "ee1e444a451643d5b1b738b8098beb5a"
+    },
+    {
+      "Start": "db412e5ece74432b933dfa6a41be5a44",
+      "End": "6674444eadf74665a5f3f8c4ecaa314f",
+      "Id": "140c13746bc545e896cfef6b53f05762"
+    },
+    {
+      "Start": "eaf96cf510c24592938ae90cd64a89c0",
+      "End": "6a41392678cb40e9999b976dbfb0aa54",
+      "Id": "072e9feeeb314ef9b7b23dde0c80feb8"
+    },
+    {
+      "Start": "05b9e494fceb4abd9357a56b6a63c881",
+      "End": "8c453a9dfd014ac9891b6f9b6ff7e004",
+      "Id": "6be02026e34f48d3b194024cd941b5da"
+    },
+    {
+      "Start": "a00b3840c03343af80a4d138c5c0d7bd",
+      "End": "0bbba033b2da4dd58ecad0546378f3bc",
+      "Id": "9c4a7de218a54892b82cb54195813bc3"
+    },
+    {
+      "Start": "8ace5ed0c8e041f0b23cb4c988969410",
+      "End": "b0ce92afb45846ec8d4f2f760d0c93b1",
+      "Id": "273e04581dde4cb5bdc38fad916e486b"
+    },
+    {
+      "Start": "464143ddb5fe4f88bf1902327400e9ca",
+      "End": "bba49f48161e4db69db03ebbadb1ef2f",
+      "Id": "1835d219415647829ed1547269aabf0f"
+    },
+    {
+      "Start": "2a4dd1ef3b66428d819749fbf2d81b75",
+      "End": "df54d0ad979c49ffacc5975f70be8f40",
+      "Id": "9c86189ea5b64452ac37376152bc65bf"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.6.1.8786",
+      "RunType": "Automatic",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "92ff55de366c4273a2eee81fd8ae1204",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 173.20673300249433,
+        "Y": 110.39287769248136
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "select lines",
+        "Id": "d84deb0e969c4bb8a17d95972e00b979",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 335.59493430150451,
+        "Y": 111.07642621349194
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "EXCEL DATABASE",
+        "Id": "9d550d69323a485985d78aeb8466a92a",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 349.98216563615608,
+        "Y": 742.78789789290408
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "4b35bb6330184a2ba5606e0e94735732",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 771.85304922452792,
+        "Y": 515.35302960478612
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "3e265b9aa9ef4947bf287a11a10b228f",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 203.28160726988335,
+        "Y": 747.264827634069
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "3740a66316d9409fae475e5213bfe2ca",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 561.87917417375866,
+        "Y": 738.59414708708391
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "1f82012b919840538c35851f25179ab4",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 563.1059038446125,
+        "Y": 822.62194499825489
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "de249f5a1bcc41e8934f914fd623ff68",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 770.545866438899,
+        "Y": 819.69435815473389
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "4eddb53f8e414f0ba20384ddbc9e0917",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 618.948898220774,
+        "Y": 40.693912502161069
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "DROPDOWN",
+        "Id": "846fcc6c9bda4130a190f8e78e5f50e6",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 543.18783682880792,
+        "Y": 1795.8813341793345
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "4aa1778946974e8585a7fc1283f1af63",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 701.60404739996068,
+        "Y": 1798.2198272169794
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "a301ee64291f4709993c700dd31722c0",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 1076.8783899083728,
+        "Y": 1893.0493894326785
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "b6e9f27318544b1ba5a1c50c5e034a4b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1215.7116436802121,
+        "Y": 1897.5322865318685
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "3f0f825a0b5b4795b20b7d9d3e1fb624",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 846.3740616925096,
+        "Y": 1859.5722567204398
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "3aa1f5b909974ba89da37b0fcc623186",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 929.22244409826669,
+        "Y": 1945.4460123933477
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "737cdfb0883e45a7800a85830f6f7bb0",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 547.13063115065768,
+        "Y": 1912.1968746596144
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "3485dd8019174b938330761249e070f5",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1312.1688852563805,
+        "Y": 1503.8167561520215
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "DROPDOWN",
+        "Id": "e6a266a1bac440d99736eae219265831",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1155.0264731071134,
+        "Y": 1500.8413639034286
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "b7a32d5e3c8e4c518618316c76cf93ef",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1463.2096393912598,
+        "Y": 1504.4662937089774
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "a8544498f4d842ff8771aaa8230efbd8",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 1118.0350877061935,
+        "Y": 2113.2922446549574
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "cf1fd46d33af4f019472a18c68f13351",
+        "Title": "EXCEL DATABASE",
+        "Nodes": [
+          "9d550d69323a485985d78aeb8466a92a",
+          "4b35bb6330184a2ba5606e0e94735732",
+          "3e265b9aa9ef4947bf287a11a10b228f",
+          "3740a66316d9409fae475e5213bfe2ca",
+          "1f82012b919840538c35851f25179ab4",
+          "de249f5a1bcc41e8934f914fd623ff68"
+        ],
+        "Left": 193.28160726988335,
+        "Top": 462.15302960478613,
+        "Width": 759.66425916901562,
+        "Height": 671.74132854994775,
+        "FontSize": 36.0,
+        "InitialTop": 515.35302960478612,
+        "InitialHeight": 452.26891539346877,
+        "TextblockHeight": 43.2,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "c0cb3404d4e749558b30c537a01b754f",
+        "Title": "dropdown ribbon (does not updates when value changes, except if boolean value is changed)",
+        "Nodes": [
+          "846fcc6c9bda4130a190f8e78e5f50e6",
+          "4aa1778946974e8585a7fc1283f1af63"
+        ],
+        "Left": 533.18783682880792,
+        "Top": 1483.4813341793347,
+        "Width": 257.61621057115275,
+        "Height": 431.39999999999992,
+        "FontSize": 36.0,
+        "InitialTop": 1795.8813341793345,
+        "InitialHeight": 147.33849303764487,
+        "TextblockHeight": 302.4,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "85223cd663fe4f099dcdeebe4569e479",
+        "Title": "dropdown separate window",
+        "Nodes": [
+          "a301ee64291f4709993c700dd31722c0",
+          "b6e9f27318544b1ba5a1c50c5e034a4b",
+          "3f0f825a0b5b4795b20b7d9d3e1fb624",
+          "3aa1f5b909974ba89da37b0fcc623186"
+        ],
+        "Left": 836.3740616925096,
+        "Top": 1806.3722567204397,
+        "Width": 589.73758198770247,
+        "Height": 231.27713271223871,
+        "FontSize": 36.0,
+        "InitialTop": 1859.5722567204398,
+        "InitialHeight": 230.87375567290792,
+        "TextblockHeight": 43.2,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "c6cc9bfa7af548188d678b7b6e4f198a",
+        "Title": "dropdown ribbon ",
+        "Nodes": [
+          "e6a266a1bac440d99736eae219265831",
+          "3485dd8019174b938330761249e070f5"
+        ],
+        "Left": 1145.0264731071134,
+        "Top": 1404.4413639034285,
+        "Width": 256.34241214926709,
+        "Height": 210.37539224859302,
+        "FontSize": 36.0,
+        "InitialTop": 1500.8413639034286,
+        "InitialHeight": 147.97539224859293,
+        "TextblockHeight": 86.4,
+        "Background": "#FFC1D676"
+      }
+    ],
+    "X": -305.5685133561517,
+    "Y": -454.71788838382497,
+    "Zoom": 0.44185351698529129
+  }
+}
