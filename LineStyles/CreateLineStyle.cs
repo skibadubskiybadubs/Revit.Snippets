@@ -73,10 +73,22 @@ namespace MetalFarm
 
         public Result CreateLineStyles(Document doc, ref string message)
         {
-            // List of new LineStyle names
-            List<string> lineStyleNames = new List<string>
+            // Dictionary of LineStyle names and their corresponding colors
+            Dictionary<string, Color> lineStyleColors = new Dictionary<string, Color>
             {
-                "C1", "T1", "梁成", "ラチ", "G1", "B1", "B2", "B3", "B4", "P1", "P2", "Ga", "Gc"
+                { "C1", new Color(255, 0, 0) }, // Red
+                { "T1", new Color(0, 255, 0) }, // Green
+                { "梁成", new Color(0, 0, 255) }, // Blue
+                { "ラチ", new Color(255, 255, 0) }, // Yellow
+                { "G1", new Color(255, 0, 255) }, // Magenta
+                { "B1", new Color(0, 255, 255) }, // Cyan
+                { "B2", new Color(128, 0, 0) }, // Maroon
+                { "B3", new Color(0, 128, 0) }, // Dark Green
+                { "B4", new Color(0, 0, 128) }, // Navy
+                { "P1", new Color(128, 128, 0) }, // Olive
+                { "P2", new Color(128, 0, 128) }, // Purple
+                { "Ga", new Color(0, 128, 128) }, // Teal
+                { "Gc", new Color(192, 192, 192) } // Silver
             };
 
             // LineStyle to be found or created
@@ -112,11 +124,14 @@ namespace MetalFarm
                 {
                     trans.Start();
 
-                    foreach (string name in lineStyleNames)
+                    foreach (var entry in lineStyleColors)
                     {
+                        string name = entry.Key;
+                        Color color = entry.Value;
+
                         if (!existingLineStyles.Contains(name)) // don't create linestyles if they already exist
                         {
-                            CreateNewLineStyle(doc, lineCat, linePatternId, name);
+                            CreateNewLineStyle(doc, lineCat, linePatternId, name, color);
                         }
                         // else
                         // {
@@ -207,11 +222,11 @@ namespace MetalFarm
         }
 
         // Create LineStyle
-        private void CreateNewLineStyle(Document doc, Category lineCat, ElementId linePatternId, string name)
+        private void CreateNewLineStyle(Document doc, Category lineCat, ElementId linePatternId, string name, Color color)
         {
             Category newLineStyleCat = doc.Settings.Categories.NewSubcategory(lineCat, name);
             newLineStyleCat.SetLineWeight(8, GraphicsStyleType.Projection);
-            newLineStyleCat.LineColor = new Color(255, 0, 0);
+            newLineStyleCat.LineColor = color;
             newLineStyleCat.SetLinePatternId(linePatternId, GraphicsStyleType.Projection);
         }
     }
