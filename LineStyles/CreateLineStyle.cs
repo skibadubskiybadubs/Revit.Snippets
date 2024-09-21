@@ -80,15 +80,16 @@ namespace MetalFarm
             };
 
             // LineStyle to be found or created
-            string linePatternName = "BimFan"; //Long dash
+            // Use "Solid" for solid line pattern, or any other name to create custom pattern (lstSegments)
+            string linePatternName = "Solid"; 
 
             // Find existing line pattern element or create a new one if not found
             Category lineCat = doc.Settings.Categories.get_Item(BuiltInCategory.OST_Lines); // Get the Lines category
-            LinePatternElement linePatternElem = FindOrCreateLinePatternElement(doc, linePatternName);
-            if (linePatternElem == null)
+            ElementId linePatternId = FindOrCreateLinePatternElement(doc, linePatternName);
+            if (linePatternId == ElementId.InvalidElementId)
             {
-                message = $"{linePatternElem} is not found";
-                MessageBox.Show($"{linePatternElem} is not found", $"{linePatternElem} is not found");
+                message = $"{linePatternName} LinePattern element could not be found or created";
+                MessageBox.Show($"{linePatternName} LinePattern element could not be found or created", "Error");
                 return Result.Failed;
             }
 
@@ -115,7 +116,7 @@ namespace MetalFarm
                     {
                         if (!existingLineStyles.Contains(name)) // don't create linestyles if they already exist
                         {
-                            CreateNewLineStyle(doc, lineCat, linePatternElem, name);
+                            CreateNewLineStyle(doc, lineCat, linePatternId, name);
                         }
                         // else
                         // {
@@ -138,8 +139,13 @@ namespace MetalFarm
         }
 
         // Find/Create LinePatternElement
-        private LinePatternElement FindOrCreateLinePatternElement(Document doc, string patternName)
+        private ElementId FindOrCreateLinePatternElement(Document doc, string patternName)
         {
+            if (patternName == "Solid")
+            {
+                return LinePatternElement.GetSolidPatternId();
+            }
+
             FilteredElementCollector collector = new FilteredElementCollector(doc)
                 .OfClass(typeof(LinePatternElement));
 
@@ -148,12 +154,13 @@ namespace MetalFarm
             {
                 if (elem.Name == patternName)
                 {
-                    return elem;
+                    return elem.Id;
                 }
             }
 
             // If not found, create a new linePattern
-            return CreateLinePatternElement(doc, patternName);
+            LinePatternElement linePatternElement = CreateLinePatternElement(doc, patternName);
+            return linePatternElement?.Id ?? ElementId.InvalidElementId;
         }
 
         private LinePatternElement CreateLinePatternElement(Document doc, string patternName)
@@ -200,12 +207,12 @@ namespace MetalFarm
         }
 
         // Create LineStyle
-        private void CreateNewLineStyle(Document doc, Category lineCat, LinePatternElement linePatternElem, string name)
+        private void CreateNewLineStyle(Document doc, Category lineCat, ElementId linePatternId, string name)
         {
             Category newLineStyleCat = doc.Settings.Categories.NewSubcategory(lineCat, name);
             newLineStyleCat.SetLineWeight(8, GraphicsStyleType.Projection);
             newLineStyleCat.LineColor = new Color(255, 0, 0);
-            newLineStyleCat.SetLinePatternId(linePatternElem.Id, GraphicsStyleType.Projection);
+            newLineStyleCat.SetLinePatternId(linePatternId, GraphicsStyleType.Projection);
         }
     }
 }
