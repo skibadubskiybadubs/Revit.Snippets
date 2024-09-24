@@ -1,0 +1,92 @@
+PROBLEM: This solution works great if Dynamo script does not create another Transaction.
+For example once any node tries to 'bake' geometry into the Revit document - it creates
+another transaction. This causes an error inside Dynamo:
+"ModelCurve.ByCurve operation failed. Starting a transaction from an external application running outside of API context is not allowed."
+
+SOLUTION: 
+Set AutomationModeKey to False - solved the issue.
+{ Dynamo.Applications.JournalKeys.AutomationModeKey, false.ToString() }
+However the user will now be prompted with a popup window
+asking if to trust the author.
+
+
+RESEARCH:
+
+I am currently facing a problem with Running the Dynamo script by using the method in RunDynamo.cs.
+
+The Dynamo script is being run by pressing a button on Revit Ribbon:
+RibbonPanel selectPanel = application.CreateRibbonPanel(Globals.tabName, Globals.SelectPanelName);
+
+PushButton FarmBtn = selectPanel.AddItem(new PushButtonData("Create", "Create Metal Structure", PluginFile, "MetalFarm.RunDynamo")) as PushButton;
+Uri FarmBtnUri = new Uri(Path.Combine(Path.GetDirectoryName(PluginFile), "struct.png"));
+BitmapImage FarmBtnImage = new BitmapImage(FarmBtnUri);
+FarmBtn.LargeImage = FarmBtnImage;
+FarmBtn.ToolTip = "Create Metal Structure";
+
+MetalFarm.RunDynamo calls RunDynamoHandler.cs:
+namespace MetalFarm
+{
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class RunDynamo : IExternalCommand
+    {
+        private static ExternalEvent _externalEvent;
+        private static RunDynamoHandler _handler;
+
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            if (_handler == null)
+            {
+                _handler = new RunDynamoHandler();
+                _externalEvent = ExternalEvent.Create(_handler);
+            }
+
+            _externalEvent.Raise();
+
+            return Result.Succeeded;
+        }
+    }
+}
+
+When Dynamo is opened, and one of the nodes tried to create another transaction to create Revit ModelLines, the node in the Dynamo script "ModelCurve.ByCurve" is throwing an error: "ModelCurve.ByCurve operation failed. Starting a transaction from an external application running outside of API context is not allowed."
+
+When the TaskDialog is active, and the buttons are greyed-out - no error occurs inside Dynamo.
+But Once I close the TaskDialog - the buttons are activated again, and the error occurs again.
+
+Basically no error occurs when Revit is Iddle (like when the process is Modal). Opened TaskDialog simulates a Modal process.
+
+I guess this is often happes whn working with Modeless things.
+
+I tried to run Dynamo script and then exiting the transaction, but then another error occured:
+"ModelCurve.ByCurve operation failed.
+Starting a new transaction is not
+permitted. It could be because another
+transaction already started and has not
+been completed yet, or the document is in
+a state in which it cannot start a new
+transaction (e.g. during failure handling or ?
+a read-only mode, which could be either
+permanent or temporary)."
+
+So I decided not ot use Transactions.
+
+all Revit API calls should happen inside the "API context"
+this "API context" lives in a special thread
+you are probably accessing the API from another thread
+this often happens when you make a Formand call into the API from one of the events (Button.OnClick)
+
+What you want to do is figure out how to get back into the API context to execute your code. There are two main methods for doing this (assuming you have already left the IExternalCommand.Execute context):
+
+polling for jobs inside the Idling event
+using an ExternalEvent
+
+create an IExternalEventHandler
+implement its Execute method
+(the Execute method runs in the Revit API context)
+create an ExternalEvent (using the event handler just created)
+when you need to do something in the Revit API context, notify the external event (my_external_event.Raise())
+
+
+Anyways, the only way I was able to fix it: { Dynamo.Applications.JournalKeys.AutomationModeKey, false.ToString() },
+
+
